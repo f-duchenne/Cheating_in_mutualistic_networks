@@ -154,7 +154,7 @@ if(b==0){dyna=out}else{
 out[,"Time"]=out[,"Time"]+b
 dyna=rbind(dyna,out[-1,])}
 if(nrow(dyna)>10){a=max(apply(t(dyna[(nrow(dyna)-10):nrow(dyna),2:(1+nbsp_a+nbsp_p)]),1,var))}
-if(max(Nini,na.rm=T)>1e5){a=-1}
+if(max(Nini,na.rm=TRUE)>1e5){a=-1}
 b=b+20
 }
 }
@@ -207,26 +207,26 @@ inv2[zz,zzz]=inv[zz,zzz]/(inv[zz,zz]*inv[zzz,zzz]-inv[zz,zzz]*inv[zzz,zz])
 diag(jacob2)=NA
 diag(inv2)=NA
 
-ai_direct_aa=mean(jacob2[(1:nbsp_a),(1:nbsp_a)],na.rm=T)
-ai_direct_pp=mean(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=T)
-ai_direct_pa=mean(jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=T)
-ai_direct_ap=mean(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)],na.rm=T)
-ai_net_ap=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)],na.rm=T)
-ai_net_aa=mean(inv2[(1:nbsp_a),(1:nbsp_a)],na.rm=T)
-ai_net_pp=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=T)
-ai_net_pa=mean(inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=T)
-ai_indirect_pa=mean(inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=T)
-ai_indirect_ap=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)],na.rm=T)
-ai_indirect_aa=mean(inv2[(1:nbsp_a),(1:nbsp_a)]-jacob2[(1:nbsp_a),(1:nbsp_a)],na.rm=T)
-ai_indirect_pp=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=T)
-ai_contrib_pa=mean((inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)])/(abs(inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)])+abs(jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)])),na.rm=T)
-ai_contrib_ap=mean((inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)])/(abs(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)])+abs(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)])),na.rm=T)
-ai_contrib_aa=mean((inv2[(1:nbsp_a),(1:nbsp_a)]-jacob2[(1:nbsp_a),(1:nbsp_a)])/(abs(inv2[(1:nbsp_a),(1:nbsp_a)]-jacob2[(1:nbsp_a),(1:nbsp_a)])+abs(jacob2[(1:nbsp_a),(1:nbsp_a)])),na.rm=T)
-ai_contrib_pp=mean((inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)])/(abs(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)])+abs(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)])),na.rm=T)
+ai_direct_aa=mean(jacob2[(1:nbsp_a),(1:nbsp_a)],na.rm=TRUE)
+ai_direct_pp=mean(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=TRUE)
+ai_direct_pa=mean(jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=TRUE)
+ai_direct_ap=mean(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)],na.rm=TRUE)
+ai_net_ap=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)],na.rm=TRUE)
+ai_net_aa=mean(inv2[(1:nbsp_a),(1:nbsp_a)],na.rm=TRUE)
+ai_net_pp=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=TRUE)
+ai_net_pa=mean(inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=TRUE)
+ai_indirect_pa=mean(inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=TRUE)
+ai_indirect_ap=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)],na.rm=TRUE)
+ai_indirect_aa=mean(inv2[(1:nbsp_a),(1:nbsp_a)]-jacob2[(1:nbsp_a),(1:nbsp_a)],na.rm=TRUE)
+ai_indirect_pp=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)],na.rm=TRUE)
+ai_contrib_pa=mean((inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)])/(abs(inv2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)])+abs(jacob2[(1:nbsp_a),(nbsp_a+1):(nbsp_a+nbsp_p)])),na.rm=TRUE)
+ai_contrib_ap=mean((inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)])/(abs(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)])+abs(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(1:nbsp_a)])),na.rm=TRUE)
+ai_contrib_aa=mean((inv2[(1:nbsp_a),(1:nbsp_a)]-jacob2[(1:nbsp_a),(1:nbsp_a)])/(abs(inv2[(1:nbsp_a),(1:nbsp_a)]-jacob2[(1:nbsp_a),(1:nbsp_a)])+abs(jacob2[(1:nbsp_a),(1:nbsp_a)])),na.rm=TRUE)
+ai_contrib_pp=mean((inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)])/(abs(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)]-jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)])+abs(jacob2[(nbsp_a+1):(nbsp_a+nbsp_p),(nbsp_a+1):(nbsp_a+nbsp_p)])),na.rm=TRUE)
 
 if(length(cheaters[cheaters==1])>0){
 cheaters_to_plant=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),cheaters==1])
-cheaters_to_poll=mean(inv2[1:nbsp_a,cheaters==1],na.rm=T)
+cheaters_to_poll=mean(inv2[1:nbsp_a,cheaters==1],na.rm=TRUE)
 }else{
 cheaters_to_plant=NA
 cheaters_to_poll=NA
@@ -234,7 +234,7 @@ cheaters_to_poll=NA
 
 if(length(cheaters[cheaters==0])>0){
 no_cheaters_to_plant=mean(inv2[(nbsp_a+1):(nbsp_a+nbsp_p),cheaters==0])
-no_cheaters_to_poll=mean(inv2[1:nbsp_a,cheaters==0],na.rm=T)
+no_cheaters_to_poll=mean(inv2[1:nbsp_a,cheaters==0],na.rm=TRUE)
 }else{
 no_cheaters_to_plant=NA
 no_cheaters_to_poll=NA
@@ -249,10 +249,11 @@ variance=a,valprop=max(Re(eig)),
 ai_direct_aa=ai_direct_aa,ai_direct_pp=ai_direct_pp,ai_direct_pa=ai_direct_pa,
 ai_direct_ap=ai_direct_ap,ai_net_ap=ai_net_ap,ai_net_aa=ai_net_aa,ai_net_pp=ai_net_pp,ai_net_pa=ai_net_pa,
 ai_indirect_aa=ai_indirect_aa,ai_indirect_pp=ai_indirect_pp,ai_indirect_pa=ai_indirect_pa,ai_indirect_ap=ai_indirect_ap,
-ai_contrib_ap=ai_contrib_ap,ai_contrib_aa=ai_contrib_aa,ai_contrib_pp=ai_contrib_pp,ai_contrib_pa=ai_contrib_pa,shape_a=exp(shape_a),shape_p=exp(shape_p),nb_cheaters_dep=length(cheaters_ini),nb_cheaters=length(cheaters),
+ai_contrib_ap=ai_contrib_ap,ai_contrib_aa=ai_contrib_aa,ai_contrib_pp=ai_contrib_pp,ai_contrib_pa=ai_contrib_pa,shape_a=exp(shape_a),shape_p=exp(shape_p),nb_cheaters_dep=length(cheaters_ini[cheaters_ini==1]),nb_cheaters=length(cheaters[cheaters==1]),
 cheaters_to_plant=cheaters_to_plant,cheaters_to_poll=cheaters_to_poll,no_cheaters_to_plant=no_cheaters_to_plant,no_cheaters_to_poll=no_cheaters_to_poll,
 NODF_Mini=networklevel(Mini,index="weighted NODF")[[1]],NODF_M=if(nbsp_a>1 & nbsp_p>1){networklevel(M,index="weighted NODF")[[1]]}else{NA},NODF_Tini=networklevel(Tini,index="weighted NODF")[[1]],
-NODF_T=if(nbsp_a>1 & nbsp_p>1){networklevel(T,index="weighted NODF")[[1]]}else{NA}))
+NODF_T=if(nbsp_a>1 & nbsp_p>1){networklevel(T,index="weighted NODF")[[1]]}else{NA},
+NODF_Iini=networklevel(Iini,index="weighted nestedness")[[1]],NODF_IM=if(nbsp_a>1 & nbsp_p>1){networklevel(IM,index="weighted nestedness")[[1]]}else{NA}))
 }else{
 netcar=rbind(netcar,data.frame(interf=interff,essai=jj,scenario=scenario,prop_cheaters=prop_cheaters,prop_cheating=prop_cheating,prop_innovative=prop_innovative,cost=cost,connectance,
 nbsp_p_dep=nbsp_p_dep,nbsp_a_dep=nbsp_a_dep,nbsp_a=nbsp_a_per,nbsp_p=nbsp_p_per,
@@ -260,9 +261,9 @@ pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),generalism_cheaters=if(
 variance=a,valprop=NA,ai_direct_aa=NA,ai_direct_pp=NA,ai_direct_pa=NA,
 ai_direct_ap=NA,ai_net_ap=NA,ai_net_aa=NA,ai_net_pp=NA,ai_net_pa=NA,
 ai_indirect_aa=NA,ai_indirect_pp=NA,ai_indirect_pa=NA,ai_indirect_ap=NA,
-ai_contrib_ap=NA,ai_contrib_aa=NA,ai_contrib_pp=NA,ai_contrib_pa=NA,shape_a=exp(shape_a),shape_p=exp(shape_p),nb_cheaters_dep=length(cheaters_ini),nb_cheaters=0,
+ai_contrib_ap=NA,ai_contrib_aa=NA,ai_contrib_pp=NA,ai_contrib_pa=NA,shape_a=exp(shape_a),shape_p=exp(shape_p),nb_cheaters_dep=length(cheaters_ini[cheaters_ini==1]),nb_cheaters=0,
 cheaters_to_plant=NA,cheaters_to_poll=NA,no_cheaters_to_plant=NA,no_cheaters_to_poll=NA,NODF_Mini=NA,NODF_M=NA,NODF_Tini=NA,
-NODF_T=NA))
+NODF_T=NA,NODF_Iini=NA,NODF_IM=NA))
 }
 
 }
@@ -272,5 +273,5 @@ print(time1-Sys.time())
 }
 
 
-fwrite(netcar,paste0("/home/duchenne/cheating/eq/netcar_",jj,".txt"),row.names=F,sep="\t")
+fwrite(netcar,paste0("/home/duchenne/cheating/eq/netcar_",jj,".txt"),row.names=FALSE,sep="\t")
 
