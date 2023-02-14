@@ -55,6 +55,7 @@ library(gMOIP)
 library(rgl)
 library(cxhull)
 library(magick)
+library(partR2)
 setwd(dir="C:/Users/Duchenne/Documents/cheating/eq")
 
 res=fread("data_for_analyse.txt")
@@ -65,9 +66,6 @@ res$feas[res$pers_tot==1]=1
 res=res %>% dplyr::group_by(essai,cost,connectance) %>% dplyr::mutate(pers_ini=mean(pers_tot[prop_cheating==0]),resilience_ini=mean(-1*valprop[prop_cheating==0],na.rm=T))
 res$resilience=-1*res$valprop
 res=res %>% group_by(prop_innovative,cost,prop_cheaters,scenario,connectance,essai) %>% mutate(pers0=pers_tot[prop_cheating==0],resilience0=resilience[prop_cheating==0])
-res$persr=res$pers_tot-res$pers0
-res$resiliencer=res$resilience-res$resilience0
-
 
 ############ FIGURE 2 ###########
 b=subset(res,prop_cheaters>0 & connectance==0.4) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(persr=mean(pers_tot-pers0),persr_sde=sd(pers_tot-pers0)/sqrt(length(persr)),
@@ -214,7 +212,23 @@ pdf("fig_S1.pdf",width=8,height=7)
 grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,3),c(2,3)),widths=c(4,1))
 dev.off();
 
+
 ############ FIGURE S2 ###########
+b=subset(res,prop_cheaters>0 & connectance==0.4 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers_cheaters=mean(nb_cheaters/nb_cheaters_dep,na.rm=T)) 
+
+pls=ggplot(data=b,aes(x=prop_cheating,y=pers_cheaters,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+
+geom_line()+theme_bw()+
+theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
+facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)))+
+labs(color=expression(Psi))+
+xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Persistence of cheaters")+scale_y_continuous(labels = scales::percent)+ggtitle("")+
+scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))
+
+png("fig_s2.png",width=1300,height=700,res=150)
+pls
+dev.off();
+
+############ FIGURE S3 ###########
 
 b=subset(res,connectance==0.4 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),
 feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T))
@@ -237,100 +251,64 @@ xlab(expression(paste("Proportion of innovative cheating (",Psi,")")))+ylab("Max
 labs(color=expression(bar(Delta)))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_s2.png",width=1000,height=900,res=150)
+png("fig_s3.png",width=1000,height=900,res=150)
 pls2
 dev.off();
 
-############ FIGURE S3 ###########
-b=subset(res,prop_cheaters>0 & connectance==0.4 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers_cheaters=mean(nb_cheaters/nb_cheaters_dep,na.rm=T)) 
-
-pls=ggplot(data=b,aes(x=prop_cheating,y=pers_cheaters,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+
-geom_line()+theme_bw()+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
-facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)))+
-labs(color=expression(Psi))+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Persistence of cheaters")+scale_y_continuous(labels = scales::percent)+ggtitle("")+
-scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))
-
-png("fig_s3.png",width=1300,height=700,res=150)
-pls
-dev.off();
-
-
-############ FIGURE 3 ###########
-b=subset(res,prop_cheaters>0 & connectance==0.4) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(resiliencer=mean(resilience-resilience0,na.rm=T),
-feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T),persr=mean(pers_tot-pers0)) 
-
-ggplot(data=b,aes(x=persr,y=resiliencer,color=as.factor(prop_innovative)))+geom_point()+facet_wrap(~cost+scenario)+stat_smooth()
-
-bidon=subset(b,cost<=0.15 & prop_cheaters %in% c(0.1,0.5))
-zero_pos=unique(scales::rescale(bidon$resiliencer, to = c(0, 1))[bidon$resiliencer==0])
-
-
-pl1=
-ggplot(data=subset(b,cost<=0.15 & prop_cheaters==0.1),aes(x=prop_cheating,y=prop_innovative,fill=resiliencer))+
-theme_bw()+
-geom_raster(interpolate=F)+
-geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.1 & resiliencer>0), alpha = 0.0, color = "black", size = 1, linejoin = "round")+
-geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.1 & resiliencer>0),aes(fill=resiliencer))+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),strip.background=element_rect(fill=NA,color=NA),
-panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="bottom",legend.text = element_text(angle=45,hjust=1))+
-facet_grid(rows=vars(cost),cols=vars(scenario),labeller = label_bquote(rows=Lambda == .(cost)))+
-labs(fill="Average effect\non resilience\n\n")+ 
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Innovative cheating (",Psi,")")))+scale_y_continuous(breaks=seq(0,1,0.2))+
-ggtitle("a",subtitle=expression(paste("10% of cheaters (",bar(Delta) == 0.1,")")))+
-scale_fill_gradientn(colors=c("firebrick2","#ffecfb","white","lightsteelblue1","midnightblue"), values=c(0,zero_pos-0.02,zero_pos,zero_pos+0.02,1),
-n.breaks=4,limits=c(min(bidon$resiliencer),max(bidon$resiliencer)))+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+
-coord_fixed(ratio=1,expand=F)+guides(fill = guide_colorbar(ticks.colour="black"))
-
-
-pl2=
-ggplot(data=subset(b,cost<=0.15 & prop_cheaters==0.5),aes(x=prop_cheating,y=prop_innovative,fill=resiliencer))+
-theme_bw()+
-geom_raster(interpolate=F)+
-geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.5 & resiliencer>0), alpha = 0.0, color = "black", size = 1, linejoin = "round")+
-geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.5 & resiliencer>0),aes(fill=resiliencer))+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),strip.background=element_rect(fill=NA,color=NA),
-panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="none",legend.text = element_text(angle=45,hjust=1))+
-facet_grid(rows=vars(cost),cols=vars(scenario),labeller = label_bquote(rows=Lambda == .(cost)))+
-labs(fill="Average effect\non persistence")+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Innovative cheating (",Psi,")")))+scale_y_continuous(breaks=seq(0,1,0.2))+
-ggtitle("b",subtitle=expression(paste("50% of cheaters (",bar(Delta) == 0.5,")")))+
-scale_fill_gradientn(colors=c("firebrick2","#ffecfb","white","lightsteelblue1","midnightblue"), values=c(0,zero_pos-0.02,zero_pos,zero_pos+0.02,1),
-n.breaks=4)+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1),limits=c(min(bidon$resiliencer),max(bidon$resiliencer)))+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+
-coord_fixed(ratio=1,expand=F)+guides(fill = guide_colorbar(ticks.colour="black"))
-
-
-leg <- ggpubr::as_ggplot(cowplot::get_legend(pl1))
-pl1=pl1+theme(legend.position="none")
-
-grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,2),c(3,3)),widths=c(1,1),heights=c(5,1))
-
-setwd(dir="C:/Users/Duchenne/Documents/cheating")
-pdf("fig3.pdf",width=8,height=5)
-grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,2),c(3,3)),widths=c(1,1),heights=c(5,1))
-dev.off();
 
 ############ FIGURE S4 ###########
-b=subset(res,prop_cheaters>0 & connectance==0.4 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
-pl1=ggplot(data=b,aes(x=prop_cheating,y=resilience,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+
-geom_hline(data=subset(b,prop_innovative==0 & prop_cheating==0),aes(yintercept=resilience),linetype="dashed",color="lightgrey")+
-geom_line()+theme_bw()+
+b=subset(res,prop_cheaters %in% c(0.1) & connectance==0.4 & nb_cheaters<(nbsp_a) & nbsp_p>1 & resilience>0) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),
+resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),
+contrib=mean(cheaters_to_poll,na.rm=T),n=length(cheaters_to_poll[!is.na(cheaters_to_poll)]),contrib2=mean(cheaters_to_plant/,na.rm=T)) 
+
+pl1=ggplot(data=subset(b,n>0),aes(x=prop_cheating,y=contrib,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
 theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
-facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)), scales="free")+
+facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)),scales="free")+
 labs(color=expression(Psi))+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Network resilience")+
-scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+
-scale_y_continuous(n.breaks=3)
+xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Average total effect of cheaters on other pollinators")+ggtitle("")+
+scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1),lim=c(0,1))
 
+pl2=ggplot(data=subset(b,n>0),aes(x=prop_cheating,y=contrib2,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
+theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
+facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)),scales="free")+
+labs(color=expression(Psi))+
+xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Average total effect of cheaters on other pollinators")+ggtitle("")+
+scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1),lim=c(0,1))
+
+sum(b$n)
+
+grid.arrange(pl1,pl2,ncol=2)
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S4.png",width=1500,height=700,res=150)
+png("fig_S4.png",width=800,height=800,res=150)
 pl1
 dev.off();
 
 ############ FIGURE S5 ###########
+
+res$NODF_c="intermediate"
+res$NODF_c[res$NODF_Iini>quantile(res$NODF_Iini[res$connectance==0.4],prob=0.75)]="high"
+res$NODF_c[res$NODF_Iini<quantile(res$NODF_Iini[res$connectance==0.4],prob=0.25)]="low"
+b=subset(res,prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9) & connectance==0.4 & prop_innovative==1) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,NODF_c,scenario) %>%
+summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),pers_eff=mean(pers_tot)-mean(pers_ini))
+
+pl1=ggplot(data=b,aes(x=prop_cheating,y=pers_eff,col=NODF_c,group=paste0(NODF_c,scenario),linetype=scenario))+
+geom_hline(yintercept=0,linetype="dashed",color="lightgrey")+
+geom_line()+theme_bw()+
+theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
+facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)),scales="free")+
+labs(color="NODF")+
+xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Network presistence, relative to a case without cheating")+ggtitle("")+
+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+scale_color_manual(values=c("firebrick3","deeppink2","pink"))
+
+setwd(dir="C:/Users/Duchenne/Documents/cheating")
+png("fig_S5.png",width=1300,height=1300,res=170)
+pl1
+dev.off();
+
+
+############ FIGURE S6 ###########
 b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
 pl1=ggplot(data=b,aes(x=prop_cheating,y=pers,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
@@ -358,77 +336,44 @@ pl1=pl1+theme(legend.position="none")
 grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,3),c(2,3)),widths=c(4,1))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S5.png",width=1300,height=1400,res=150)
+png("fig_S6.png",width=1300,height=1400,res=150)
 grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,3),c(2,3)),widths=c(4,1))
 dev.off();
-
-############ FIGURE S6 ###########
-b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
-
-pl1=ggplot(data=b,aes(x=prop_cheating,y=pers,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
-facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)))+
-labs(color=expression(Psi))+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Network resilience")+ggtitle("")+
-scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))
-
-setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S6.png",width=1300,height=700,res=150)
-pl1
-dev.off();
-
-############ FIGURE S7 ###########
-
-res$NODF_c="intermediate"
-res$NODF_c[res$NODF_Iini>quantile(res$NODF_Iini[res$connectance==0.4],prob=0.75)]="high"
-res$NODF_c[res$NODF_Iini<quantile(res$NODF_Iini[res$connectance==0.4],prob=0.25)]="low"
-b=subset(res,prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9) & connectance==0.4 & prop_innovative==1) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,NODF_c,scenario) %>%
-summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),pers_eff=mean(pers_tot)-mean(pers_ini))
-
-pl1=ggplot(data=b,aes(x=prop_cheating,y=pers_eff,col=NODF_c,group=paste0(NODF_c,scenario),linetype=scenario))+
-geom_hline(yintercept=0,linetype="dashed",color="lightgrey")+
-geom_line()+theme_bw()+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
-facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)),scales="free")+
-labs(color="NODF")+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Network presistence, relative to a case without cheating")+ggtitle("")+
-scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+scale_color_manual(values=c("firebrick3","deeppink2","pink"))
-
-setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S7.png",width=1300,height=1300,res=170)
-pl1
-dev.off();
-
-############ FIGURE S8 ###########
-
-b=subset(res,prop_cheaters %in% c(0.1) & connectance==0.4 & nb_cheaters<(nbsp_a) & nbsp_p>1 & resilience>0) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),
-contrib=mean(cheaters_to_poll,na.rm=T),n=length(cheaters_to_poll[!is.na(cheaters_to_poll)])) 
-
-pl1=ggplot(data=subset(b,n>0),aes(x=prop_cheating,y=contrib,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
-facet_grid(rows=vars(cost),cols=vars(prop_cheaters),labeller = label_bquote(cols=bar(Delta) == .(prop_cheaters),rows=Lambda == .(cost)),scales="free")+
-labs(color=expression(Psi))+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Average total effect of cheaters on other pollinators")+ggtitle("")+
-scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1),lim=c(0,1))
-
-sum(b$n)
-
-setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S8.png",width=800,height=800,res=150)
-pl1
-dev.off();
-
 
 ####################
 ######## EXPLAIN VARIANCE
 res$resiliencer=res$pers_tot-res$pers0
 res$ID=apply(res[,c("prop_cheating","prop_innovative","cost","prop_cheaters","scenario")],1,paste0,collapse="-")
-model=lmer(persr~connectance+shape_a+shape_p+NODF_Iini+(1|ID),data=res)
-Anova(model)
-summary(model)
+res$inv_shape_a=1/res$shape_a
+res$inv_shape_p=1/res$shape_p
+res=res %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario,connectance) %>% mutate(pers_moy=mean(pers_tot))
+(var(res$pers_tot)-var(res$pers_tot-res$pers_moy))/var(res$pers_tot)
+res$resi=res$pers_tot-res$pers_moy
+res$resi2=round(res$resi,digits=3)
 
-obj=insight::get_variance(model)
+model=lm(resi~NODF_Iini+as.factor(connectance),data=res)
+pred=as.data.frame(predict(model,interval ="confidence",newdata=data.frame(NODF_Iini=seq(min(res$NODF_Iini),max(res$NODF_Iini),by=0.01),connectance=as.factor(0.4))))
+pred$NODF_Iini=seq(min(res$NODF_Iini),max(res$NODF_Iini),by=0.01)
 
+res_simpl=res %>% group_by(NODF_Iini,resi2) %>% count()
+
+pl2=ggplot()+geom_point(data=res_simpl,aes(x=NODF_Iini,y=resi2,alpha=n),size=0.5,col="grey")+
+geom_ribbon(data=pred,aes(x=NODF_Iini,ymax=upr,ymin=lwr),fill="lightgrey",alpha=0.4)+geom_line(data=pred,aes(x=NODF_Iini,y=fit),size=1)+
+theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
+plot.title=element_text(size=14,face="bold",hjust = 0),legend.position="none")+ggtitle("b")+ylab("Residual effect of cheating on persistence")+xlab("Nestedness (NODF)")+scale_alpha(range = c(0.05, 1))
+
+pred=as.data.frame(predict(model,interval ="confidence",newdata=data.frame(NODF_Iini=mean(res$NODF_Iini),connectance=as.factor(c(0.2,0.4)))))
+pred$connectance=c(0.2,0.4)
+
+pl1=ggplot()+
+geom_pointrange(data=pred,aes(x=as.factor(connectance),y=fit,ymax=upr,ymin=lwr))+
+theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
+plot.title=element_text(size=14,face="bold",hjust = 0))+ggtitle("a")+ylab("Residual effect of cheating on persistence")+xlab("Connectance")
+
+setwd(dir="C:/Users/Duchenne/Documents/cheating")
+pdf("fig3.pdf",width=8,height=4)
+grid.arrange(pl1,pl2,ncol=2,widths=c(1,3))
+dev.off();
 
 
 
