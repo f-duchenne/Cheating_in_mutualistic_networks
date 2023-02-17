@@ -11,7 +11,7 @@ res=rbind(res,bidon)
 }
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating/")
-fwrite(unique(res),"data_for_analyse_empir.txt")
+fwrite(unique(res),"equilibriums_analyse_empir.txt")
 
 library(bipartite)
 library(Rmpfr)
@@ -56,13 +56,10 @@ source("C:/Users/Duchenne/Documents/cheating/script/theme_border.r")
 setwd(dir="C:/Users/Duchenne/Documents/cheating/")
 
 #LOAD SITE METADATARAIT
-site_cr=fread("C:/Users/Duchenne/Documents/EPHI_data_clean/Costa-Rica_2022-11-07/Site_metadata_Costa-Rica.txt")
-site_ec=fread("C:/Users/Duchenne/Documents/EPHI_data_clean/Ecuador_2022-11-07/Site_metadata_Ecuador.txt")
-sites=rbind(site_cr,site_ec)
+sites=fread("table_s2.csv")
 resi=fread("resi.txt")
-sites=merge(sites,resi,by="site")
 
-res=fread("data_for_analyse_empir.txt")
+res=fread("equilibriums_analyse_empir.txt")
 res=merge(res,sites,by="site")
 res$resilience=-1*res$valprop
 
@@ -93,7 +90,7 @@ geom_errorbar(aes(ymin=pers_moy-1.96*sde,ymax=pers_moy+1.96*sde,col=as.factor(Co
 geom_point(aes(fill=as.factor(Country),group=site),position=position_dodge(width=dodge),shape=21,col="white",alpha=0.5)+
 geom_pointrange(data=b3,aes(x=as.factor(cost),y=pers_moy,ymin=pers_moy-1.96*sde,ymax=pers_moy+1.96*sde),col="black",shape=4)+
 theme_classic()+
-theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),panel.border = theme_border(type = c("bottom","left")))+
+theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),panel.border = theme_border(type = c("bottom","left")),axis.text.x=element_text(angle=45,hjust=1))+
 facet_grid(cols=vars(efficience),rows=vars(interf),labeller = label_bquote(cols= italic(alpha)== .(efficience),rows= italic(c)== .(interf)),scales="free")+
 scale_color_manual(values=c("#0B4F6C","#CBB9A8"))+scale_fill_manual(values=c("#0B4F6C","#CBB9A8"))+
 ylab("Effect of cheating on network persistence")+xlab(expression(paste("Cost associated with mutualism (",Lambda,")")))+

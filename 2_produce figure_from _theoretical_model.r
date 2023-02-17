@@ -1,6 +1,6 @@
 library(data.table)
 library(dplyr)
-setwd(dir="C:/Users/Duchenne/Documents/cheating/eq")
+setwd(dir="C:/Users/Duchenne/Documents/cheating/eq_tot")
 
 lili=list.files()
 lili=lili[grep("netcar",lili)]
@@ -8,8 +8,22 @@ res=NULL
 for(i in lili){
 #bidon=fread(paste0("netcar_",i,".txt"))
 bidon=fread(i)
+bidon=bidon[,c("prop_cheating","prop_innovative","cost","prop_cheaters","scenario","connectance","essai","pers_tot","nbsp_a","nbsp_p","nb_cheaters","nb_cheaters_dep","valprop","C_Iini","NODF_Iini","mod_Iini",
+"ai_contrib_aa","cheaters_to_poll","cheaters_to_plant"),with=F]
 res=rbind(res,bidon)
 }
+
+
+bidon=data.table(essai=1:500,avg_ra=NA,avg_rp=NA)
+for(j in 1:500){
+load(paste0("C:/Users/Duchenne/Documents/cheating/initial/replicate_",j,".RData"))
+bidon$avg_ra[bidon$essai==j]=mean(r[1:20])
+bidon$avg_rp[bidon$essai==j]=mean(r[21:40])
+}
+
+dim(res)
+res=merge(res,bidon,by="essai")
+dim(res)
 
 fwrite(res,"data_for_analyse.txt")
 
@@ -56,11 +70,10 @@ library(rgl)
 library(cxhull)
 library(magick)
 library(partR2)
-setwd(dir="C:/Users/Duchenne/Documents/cheating/eq")
+setwd(dir="C:/Users/Duchenne/Documents/cheating/eq_tot")
 
 res=fread("data_for_analyse.txt")
 
-res$asy=res$nbsp_p_dep/res$nbsp_a_dep
 res$feas=0
 res$feas[res$pers_tot==1]=1
 res=res %>% dplyr::group_by(essai,cost,connectance) %>% dplyr::mutate(pers_ini=mean(pers_tot[prop_cheating==0]),resilience_ini=mean(-1*valprop[prop_cheating==0],na.rm=T))
@@ -118,7 +131,7 @@ grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,2),c(3,3)),widths=c(1,1),heigh
 b=subset(res,connectance==0.4) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(persr=mean(pers_tot-pers0),persr_sde=sd(pers_tot-pers0)/sqrt(length(persr)),
 resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
-ini3D(argsPlot3d=list(xlim=c(0.1,1),zlim=c(0.1,1),ylim =c(0,1)))
+ini3D(argsAxes3d=list(edges =c('y+', 'x', 'x', 'z')),argsPlot3d=list(xlim=c(0.1,1),zlim=c(0.1,1),ylim =c(0,1)))
 bidon=subset(b,cost==0 & persr>0 & scenario=="specialists")
 X=bidon$prop_cheating
 Y=bidon$prop_innovative
@@ -143,14 +156,8 @@ mat3=as.matrix(unique(cbind(X,Y,Z)))
 cxhull(mat3)
 ls3=plotHull3D(mat3, drawPoints = FALSE,drawLines =FALSE,argsPlot3d=list(add=TRUE),argsPolygon3d = list(color = "midnightblue",alpha = 1)) # a line
 
-finalize3D(argsTitle3d=list(xlab=expression(Omega),ylab=expression(Psi),zlab=expression(bar(Delta)),cex=2))
-
-HTML <- rglwidget( width=2000,height=2000)
-
-setwd(dir="C:/Users/Duchenne/Documents/cheating")
-# Exporting HTML file
-htmlwidgets::saveWidget(HTML, "./test.html")
-
+finalize3D(argsTitle3d=list(xlab=expression(Omega),ylab="",zlab=expression(bar(Delta)),cex=2),argsAxes3d=list(edges =c('y+', 'x', 'x', 'z')))
+mtext3d(expression(Psi),edge="y+",line=2,las=2,cex=2)
 
 liste=unique(b[,c("cost","scenario")])
 liste$volume=NA
@@ -160,6 +167,7 @@ X=bidon$prop_cheating
 Y=bidon$prop_innovative
 Z=bidon$prop_cheaters
 mat=as.matrix(unique(cbind(X,Y,Z)))
+plotHull3D(mat3, drawPoints = TRUE,drawLines =TRUE) # a line
 liste$volume[i]=if(nrow(bidon)>2){cxhull(mat)$volume}else{0}
 }
 
@@ -259,8 +267,7 @@ dev.off();
 ############ FIGURE S4 ###########
 
 b=subset(res,prop_cheaters %in% c(0.1) & connectance==0.4 & nb_cheaters<(nbsp_a) & nbsp_p>1 & resilience>0) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),
-resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),
-contrib=mean(cheaters_to_poll,na.rm=T),n=length(cheaters_to_poll[!is.na(cheaters_to_poll)]),contrib2=mean(cheaters_to_plant/,na.rm=T)) 
+resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(cheaters_to_poll,na.rm=T),n=length(cheaters_to_poll[!is.na(cheaters_to_poll)]),contrib2=mean(cheaters_to_plant,na.rm=T))
 
 pl1=ggplot(data=subset(b,n>0),aes(x=prop_cheating,y=contrib,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
 theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
@@ -290,7 +297,7 @@ dev.off();
 res$NODF_c="intermediate"
 res$NODF_c[res$NODF_Iini>quantile(res$NODF_Iini[res$connectance==0.4],prob=0.75)]="high"
 res$NODF_c[res$NODF_Iini<quantile(res$NODF_Iini[res$connectance==0.4],prob=0.25)]="low"
-b=subset(res,prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9) & connectance==0.4 & prop_innovative==1) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,NODF_c,scenario) %>%
+b=subset(res,prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9) & connectance==0.4 & prop_innovative==0) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,NODF_c,scenario) %>%
 summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),pers_eff=mean(pers_tot)-mean(pers_ini))
 
 pl1=ggplot(data=b,aes(x=prop_cheating,y=pers_eff,col=NODF_c,group=paste0(NODF_c,scenario),linetype=scenario))+
@@ -309,7 +316,8 @@ dev.off();
 
 
 ############ FIGURE S6 ###########
-b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
+b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% 
+summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
 pl1=ggplot(data=b,aes(x=prop_cheating,y=pers,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
 theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
@@ -319,7 +327,8 @@ xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab("Network persiste
 scale_color_gradientn(colours=scales::viridis_pal(option="turbo")(100)[1:80])+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))
 
 
-b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
+b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>%
+summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
 pl2=ggplot(data=subset(b,prop_innovative %in% c(0,1) & prop_cheating<0.5),aes(x=prop_cheating,y=pers,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+
 geom_hline(data=subset(b, prop_innovative==0 & prop_cheating==0),aes(yintercept=pers),linetype="dashed",color="lightgrey")+
@@ -341,38 +350,69 @@ grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,3),c(2,3)),widths=c(4,1))
 dev.off();
 
 ####################
-######## EXPLAIN VARIANCE
+######## FIG 3 ##########
 res$resiliencer=res$pers_tot-res$pers0
-res$ID=apply(res[,c("prop_cheating","prop_innovative","cost","prop_cheaters","scenario")],1,paste0,collapse="-")
-res$inv_shape_a=1/res$shape_a
-res$inv_shape_p=1/res$shape_p
-res=res %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario,connectance) %>% mutate(pers_moy=mean(pers_tot))
-(var(res$pers_tot)-var(res$pers_tot-res$pers_moy))/var(res$pers_tot)
-res$resi=res$pers_tot-res$pers_moy
+res=res %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% mutate(pers_moy=mean(pers_tot),pers_sd=sd(pers_tot))
+1-(var(res$pers_tot-res$pers_moy))/var(res$pers_tot)
+res$resi=(res$pers_tot-res$pers_moy)
 res$resi2=round(res$resi,digits=3)
 
-model=lm(resi~NODF_Iini+as.factor(connectance),data=res)
-pred=as.data.frame(predict(model,interval ="confidence",newdata=data.frame(NODF_Iini=seq(min(res$NODF_Iini),max(res$NODF_Iini),by=0.01),connectance=as.factor(0.4))))
-pred$NODF_Iini=seq(min(res$NODF_Iini),max(res$NODF_Iini),by=0.01)
+res=res %>% group_by(connectance) %>% mutate(NODF_moy=mean(NODF_Iini,na.rm=T),mod_moy=mean(mod_Iini,na.rm=T),resi_moy=mean(resi),resi_sd=sd(resi))
+res$NODF_Iini2=res$NODF_Iini-res$NODF_moy
+res$mod_Iini2=res$mod_Iini-res$mod_moy
+res$C_Iini2=res$C_Iini
 
-res_simpl=res %>% group_by(NODF_Iini,resi2) %>% count()
 
-pl2=ggplot()+geom_point(data=res_simpl,aes(x=NODF_Iini,y=resi2,alpha=n),size=0.5,col="grey")+
-geom_ribbon(data=pred,aes(x=NODF_Iini,ymax=upr,ymin=lwr),fill="lightgrey",alpha=0.4)+geom_line(data=pred,aes(x=NODF_Iini,y=fit),size=1)+
+cor(res[,c("mod_Iini","NODF_Iini","connectance","NODF_Iini2","mod_Iini2","C_Iini2")])
+model=lm(resi~avg_ra+avg_rp+mod_Iini2+NODF_Iini2+C_Iini2,data=res)
+summary(model)
+ano=Anova(model)
+vec=(ano[,1]/sum(ano[,1]))
+sum(vec[1:2])
+sum(vec[3:5])
+sum(vec[6])
+
+
+newdat=data.frame(NODF_Iini2=mean(res$NODF_Iini2),C_Iini2=0.3,
+avg_rp=c(seq(min(res$avg_rp),max(res$avg_rp),length.out=100),rep(mean(res$avg_rp),each=100)),
+avg_ra=c(rep(mean(res$avg_ra),each=100),seq(min(res$avg_ra),max(res$avg_ra),length.out=100)),
+guild=rep(c("plants","animals"),each=100),x=seq(min(res$avg_ra),max(res$avg_ra),length.out=100),mod_Iini2=mean(res$mod_Iini2))
+pred=cbind(newdat,as.data.frame(predict(model,interval ="confidence",newdata=newdat)))
+
+pl1=ggplot(data=pred,aes(x=x,color=as.factor(guild),fill=as.factor(guild),y=fit,ymax=upr,ymin=lwr))+
+geom_ribbon(alpha=0.3)+
+geom_line()+
 theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
-plot.title=element_text(size=14,face="bold",hjust = 0),legend.position="none")+ggtitle("b")+ylab("Residual effect of cheating on persistence")+xlab("Nestedness (NODF)")+scale_alpha(range = c(0.05, 1))
+plot.title=element_text(size=14,face="bold",hjust = 0))+ggtitle("a")+ylab("Residual effect of cheating on persistence")+xlab("Average growth rate")+scale_color_manual(values=c("#D0CD94","#3C787E"))+
+scale_fill_manual(values=c("#D0CD94","#3C787E"))+labs(color="",fill="")+ scale_alpha(guide = 'none')
 
-pred=as.data.frame(predict(model,interval ="confidence",newdata=data.frame(NODF_Iini=mean(res$NODF_Iini),connectance=as.factor(c(0.2,0.4)))))
-pred$connectance=c(0.2,0.4)
+newdat=data.frame(NODF_Iini2=seq(min(res$NODF_Iini2),max(res$NODF_Iini2),length.out=100),C_Iini2=rep(c(0.2,0.3,0.4),each=100),avg_rp=mean(res$avg_rp),avg_ra=mean(res$avg_ra),mod_Iini2=mean(res$mod_Iini2))
+pred=cbind(newdat,as.data.frame(predict(model,interval ="confidence",newdata=newdat)))
 
-pl1=ggplot()+
-geom_pointrange(data=pred,aes(x=as.factor(connectance),y=fit,ymax=upr,ymin=lwr))+
+pl2=ggplot()+
+geom_ribbon(data=pred,aes(x=NODF_Iini2,ymax=upr,ymin=lwr,fill=as.factor(C_Iini2)),alpha=0.4)+
+geom_line(data=pred,aes(x=NODF_Iini2,y=fit,color=as.factor(C_Iini2)),size=1)+
 theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
-plot.title=element_text(size=14,face="bold",hjust = 0))+ggtitle("a")+ylab("Residual effect of cheating on persistence")+xlab("Connectance")
+plot.title=element_text(size=14,face="bold",hjust = 0),legend.position="none")+ggtitle("b")+ylab("Residual effect of cheating on persistence")+xlab("Corrected nestedness (NODF)")+scale_alpha(range = c(0.001, 0.1))+
+scale_color_manual(values=c("#364156","#7D4E57","#D66853"))+
+scale_fill_manual(values=c("#364156","#7D4E57","#D66853"))+labs(color=expression(phi1),fill=expression(phi1))+ scale_alpha(guide = 'none')
+
+newdat=data.frame(NODF_Iini2=mean(res$NODF_Iini2),C_Iini2=rep(c(0.2,0.3,0.4),each=100),avg_rp=mean(res$avg_rp),avg_ra=mean(res$avg_ra),mod_Iini2=seq(min(res$mod_Iini2),max(res$mod_Iini2),length.out=100))
+pred=cbind(newdat,as.data.frame(predict(model,interval ="confidence",newdata=newdat)))
+
+pl3=ggplot()+
+geom_ribbon(data=pred,aes(x=mod_Iini2,ymax=upr,ymin=lwr,fill=as.factor(C_Iini2)),alpha=0.4)+
+geom_line(data=pred,aes(x=mod_Iini2,y=fit,color=as.factor(C_Iini2)),size=1)+
+theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
+plot.title=element_text(size=14,face="bold",hjust = 0),legend.position="right",axis.title.y=element_blank())+ggtitle("c")+ylab("Residual effect of cheating on persistence")+xlab("Corrected modularity")+scale_alpha(range = c(0.001, 0.1))+
+scale_color_manual(values=c("#364156","#7D4E57","#D66853"))+
+scale_fill_manual(values=c("#364156","#7D4E57","#D66853"))+labs(color=expression(phi1),fill=expression(phi1))+ scale_alpha(guide = 'none')
+
+grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-pdf("fig3.pdf",width=8,height=4)
-grid.arrange(pl1,pl2,ncol=2,widths=c(1,3))
+pdf("fig3.pdf",width=9,height=3)
+grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 dev.off();
 
 

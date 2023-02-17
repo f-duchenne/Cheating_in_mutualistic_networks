@@ -72,9 +72,13 @@ color_values=c(mat2)
 #color gradient:
 Col <- rbPal(20)[as.numeric(cut(color_values,breaks = 20))]
 Col[color_values==0]="black"
+trans=rep(1,length(Col))
+trans[color_values==0]=0.5
+func=function(x,y){adjustcolor(x,alpha.f=y)}
+Col=mapply(func,Col,trans)
 
 
-plotweb(mat,col.interaction=Col,col.high="dodgerblue3",col.low="forestgreen",bor.col.interaction=Col,high.lablength=0,low.lablength=0,bor.col.high="dodgerblue3",bor.col.low="forestgreen",y.width.low=0.05,y.width.high=0.05)
+plotweb(mat,col.interaction=Col,col.high="dodgerblue3",col.low="forestgreen",bor.col.interaction=NA,high.lablength=0,low.lablength=0,bor.col.high="dodgerblue3",bor.col.low="forestgreen",y.width.low=0.05,y.width.high=0.05)
 title(paste0(i))
 
 }
@@ -95,8 +99,12 @@ color_values=c(mat2)
 #color gradient:
 Col <- rbPal(20)[as.numeric(cut(color_values,breaks = 20))]
 Col[color_values==0]="black"
+trans=rep(1,length(Col))
+trans[color_values==0]=0.5
+func=function(x,y){adjustcolor(x,alpha.f=y)}
+Col=mapply(func,Col,trans)
 
-plotweb(mat,col.interaction=Col,col.high="dodgerblue3",col.low="forestgreen",bor.col.interaction=Col,high.lablength=0,low.lablength=0,bor.col.high="dodgerblue3",bor.col.low="forestgreen",y.width.low=0.05,y.width.high=0.05)
+plotweb(mat,col.interaction=Col,col.high="dodgerblue3",col.low="forestgreen",bor.col.interaction=NA,high.lablength=0,low.lablength=0,bor.col.high="dodgerblue3",bor.col.low="forestgreen",y.width.low=0.05,y.width.high=0.05)
 title(paste0(i))
 }
 dev.off();
@@ -115,8 +123,12 @@ color_values=c(mat2)
 #color gradient:
 Col <- rbPal(20)[as.numeric(cut(color_values,breaks = 20))]
 Col[color_values==0]="black"
+trans=rep(1,length(Col))
+trans[color_values==0]=0.5
+func=function(x,y){adjustcolor(x,alpha.f=y)}
+Col=mapply(func,Col,trans)
 
-gr1=plot_grid(base2grob(~plotweb(mat,method="cca",col.interaction=Col,col.high="dodgerblue3",col.low="forestgreen",bor.col.interaction=Col,high.lablength=0,low.lablength=0,bor.col.high="dodgerblue3",bor.col.low="forestgreen",
+gr1=plot_grid(base2grob(~plotweb(mat,method="cca",col.interaction=Col,col.high="dodgerblue3",col.low="forestgreen",bor.col.interaction=NA,high.lablength=0,low.lablength=0,bor.col.high="dodgerblue3",bor.col.low="forestgreen",
 y.width.low=0.05,y.width.high=0.05)))+
 ggtitle("a")+theme(plot.title=element_text(size=14,face="bold",hjust = 0))
 
