@@ -70,14 +70,15 @@ library(rgl)
 library(cxhull)
 library(magick)
 library(partR2)
+library(ggpubr)
 setwd(dir="C:/Users/Duchenne/Documents/cheating/eq_tot")
 
 res=fread("data_for_analyse.txt")
 
 res$feas=0
 res$feas[res$pers_tot==1]=1
-res=res %>% dplyr::group_by(essai,cost,connectance) %>% dplyr::mutate(pers_ini=mean(pers_tot[prop_cheating==0]),resilience_ini=mean(-1*valprop[prop_cheating==0],na.rm=T))
 res$resilience=-1*res$valprop
+nrow(subset(res,resilience<0))
 res=res %>% group_by(prop_innovative,cost,prop_cheaters,scenario,connectance,essai) %>% mutate(pers0=pers_tot[prop_cheating==0],resilience0=resilience[prop_cheating==0])
 
 ############ FIGURE 2 ###########
@@ -91,41 +92,45 @@ zero_pos=unique(scales::rescale(bidon$persr, to = c(0, 1))[bidon$persr==0])
 pl1=
 ggplot(data=subset(b,cost<=0.15 & prop_cheaters==0.1),aes(x=prop_cheating,y=prop_innovative,fill=persr))+
 theme_bw()+
-geom_raster(interpolate=F)+
+geom_raster(interpolate=FALSE)+
 geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.1 & persr>0), alpha = 0.0, color = "black", size = 1, linejoin = "round")+
-geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.1 & persr>0),aes(fill=persr))+
+geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.1 & persr>0),aes(fill=persr),col=NA)+
 theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),strip.background=element_rect(fill=NA,color=NA),
 panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="bottom",legend.text = element_text(angle=45,hjust=1))+
 facet_grid(rows=vars(cost),cols=vars(scenario),labeller = label_bquote(rows=Lambda == .(cost)))+
 labs(fill="Average effect\non persistence\n\n")+ 
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Innovative cheating (",Psi,")")))+scale_y_continuous(breaks=seq(0,1,0.2))+
+xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Proportion of innovative cheating (",Psi,")")))+
 ggtitle("a",subtitle=expression(paste("10% of cheaters (",bar(Delta) == 0.1,")")))+
 scale_fill_gradientn(colors=c("firebrick2","#ffecfb","white","lightsteelblue1","midnightblue"), values=c(0,zero_pos-0.02,zero_pos,zero_pos+0.02,1),
-n.breaks=4,limits=c(min(bidon$persr),max(bidon$persr)),labels = scales::percent_format(accuracy=1))+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+
+n.breaks=4,limits=c(min(bidon$persr),max(bidon$persr)),labels = scales::percent_format(accuracy=1))+
+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+scale_y_continuous(breaks=seq(0,1,0.2))+
 coord_fixed(ratio=1,expand=F)+guides(fill = guide_colorbar(ticks.colour="black"))
 
 
 pl2=
 ggplot(data=subset(b,cost<=0.15 & prop_cheaters==0.5),aes(x=prop_cheating,y=prop_innovative,fill=persr))+
 theme_bw()+
-geom_raster(interpolate=F)+
+geom_raster(interpolate=FALSE)+
 geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.5 & persr>0), alpha = 0.0, color = "black", size = 1, linejoin = "round")+
-geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.5 & persr>0),aes(fill=persr))+
+geom_tile(data=subset(b,cost<=0.15 & prop_cheaters==0.5 & persr>0),aes(fill=persr),col=NA)+
 theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),strip.background=element_rect(fill=NA,color=NA),
 panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="none",legend.text = element_text(angle=45,hjust=1))+
 facet_grid(rows=vars(cost),cols=vars(scenario),labeller = label_bquote(rows=Lambda == .(cost)))+
 labs(fill="Average effect\non persistence")+
-xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Innovative cheating (",Psi,")")))+scale_y_continuous(breaks=seq(0,1,0.2))+
+xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Proportion of innovative cheating (",Psi,")")))+
 ggtitle("b",subtitle=expression(paste("50% of cheaters (",bar(Delta) == 0.5,")")))+
 scale_fill_gradientn(colors=c("firebrick2","#ffecfb","white","lightsteelblue1","midnightblue"), values=c(0,zero_pos-0.02,zero_pos,zero_pos+0.02,1),
-n.breaks=4,labels = function(x) sprintf("%.2f", x))+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1),limits=c(min(bidon$persr),max(bidon$persr)))+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+
+n.breaks=4,labels = function(x) sprintf("%.2f", x),limits=c(min(bidon$persr),max(bidon$persr)))+
+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+scale_y_continuous(breaks=seq(0,1,0.2))+
 coord_fixed(ratio=1,expand=F)+guides(fill = guide_colorbar(ticks.colour="black"))
 
 
 leg <- ggpubr::as_ggplot(cowplot::get_legend(pl1))
 pl1=pl1+theme(legend.position="none")
 
-grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,2),c(3,3)),widths=c(1,1),heights=c(5,1))
+
+pl1=grid.arrange(pl1,right=text_grob("Cost associated with mutualism", size = 10,rot=270,hjust = 0.40,vjust=2),ncol=1)
+pl2=grid.arrange(pl2,right=text_grob("Cost associated with mutualism", size = 10,rot=270,hjust = 0.40,vjust=2),ncol=1)
 
 ######## HYPERVOLUMES
 b=subset(res,connectance==0.4) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% summarise(persr=mean(pers_tot-pers0),persr_sde=sd(pers_tot-pers0)/sqrt(length(persr)),
@@ -176,7 +181,7 @@ theme_bw()+theme(axis.line = element_line(colour = "black"),panel.grid.major = e
 axis.title.x=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0))+
 coord_cartesian(expand=F)+labs(fill=expression(paste("Cost (",Lambda,")")))+ylab("Volume of the parameter space in which\ncheating increases persistence")+ggtitle("d")
 
-
+setwd(dir="C:/Users/Duchenne/Documents/cheating")
 td <- image_read("essai.png",density=900) 
 pl4 <- image_ggplot(td,interpolate=T)+theme(plot.title=element_text(size=14,face="bold",hjust = 0))+ggtitle("c")
 
@@ -297,8 +302,8 @@ dev.off();
 res$NODF_c="intermediate"
 res$NODF_c[res$NODF_Iini>quantile(res$NODF_Iini[res$connectance==0.4],prob=0.75)]="high"
 res$NODF_c[res$NODF_Iini<quantile(res$NODF_Iini[res$connectance==0.4],prob=0.25)]="low"
-b=subset(res,prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9) & connectance==0.4 & prop_innovative==0) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,NODF_c,scenario) %>%
-summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),pers_eff=mean(pers_tot)-mean(pers_ini))
+b=subset(res,prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9) & connectance==0.4 & prop_innovative==1) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,NODF_c,scenario) %>%
+summarise(pers=mean(pers_tot),pers_eff=mean(pers_tot)-mean(pers0))
 
 pl1=ggplot(data=b,aes(x=prop_cheating,y=pers_eff,col=NODF_c,group=paste0(NODF_c,scenario),linetype=scenario))+
 geom_hline(yintercept=0,linetype="dashed",color="lightgrey")+
@@ -394,8 +399,8 @@ geom_ribbon(data=pred,aes(x=NODF_Iini2,ymax=upr,ymin=lwr,fill=as.factor(C_Iini2)
 geom_line(data=pred,aes(x=NODF_Iini2,y=fit,color=as.factor(C_Iini2)),size=1)+
 theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
 plot.title=element_text(size=14,face="bold",hjust = 0),legend.position="none")+ggtitle("b")+ylab("Residual effect of cheating on persistence")+xlab("Corrected nestedness (NODF)")+scale_alpha(range = c(0.001, 0.1))+
-scale_color_manual(values=c("#364156","#7D4E57","#D66853"))+
-scale_fill_manual(values=c("#364156","#7D4E57","#D66853"))+labs(color=expression(phi1),fill=expression(phi1))+ scale_alpha(guide = 'none')
+scale_color_manual(values=c("lightpink","hotpink","deeppink4"))+
+scale_fill_manual(values=c("lightpink","hotpink","deeppink4"))+labs(color=expression(phi1),fill=expression(phi1))+ scale_alpha(guide = 'none')
 
 newdat=data.frame(NODF_Iini2=mean(res$NODF_Iini2),C_Iini2=rep(c(0.2,0.3,0.4),each=100),avg_rp=mean(res$avg_rp),avg_ra=mean(res$avg_ra),mod_Iini2=seq(min(res$mod_Iini2),max(res$mod_Iini2),length.out=100))
 pred=cbind(newdat,as.data.frame(predict(model,interval ="confidence",newdata=newdat)))
@@ -405,8 +410,8 @@ geom_ribbon(data=pred,aes(x=mod_Iini2,ymax=upr,ymin=lwr,fill=as.factor(C_Iini2))
 geom_line(data=pred,aes(x=mod_Iini2,y=fit,color=as.factor(C_Iini2)),size=1)+
 theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
 plot.title=element_text(size=14,face="bold",hjust = 0),legend.position="right",axis.title.y=element_blank())+ggtitle("c")+ylab("Residual effect of cheating on persistence")+xlab("Corrected modularity")+scale_alpha(range = c(0.001, 0.1))+
-scale_color_manual(values=c("#364156","#7D4E57","#D66853"))+
-scale_fill_manual(values=c("#364156","#7D4E57","#D66853"))+labs(color=expression(phi1),fill=expression(phi1))+ scale_alpha(guide = 'none')
+scale_color_manual(values=c("lightpink","hotpink","deeppink4"))+
+scale_fill_manual(values=c("lightpink","hotpink","deeppink4"))+labs(color=expression(phi1),fill=expression(phi1))+ scale_alpha(guide = 'none')
 
 grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 

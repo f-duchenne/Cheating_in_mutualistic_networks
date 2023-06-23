@@ -48,6 +48,8 @@ dat=fread("empirical_data.csv",na.strings = c(""," ", NA))
 tr2=fread("traits_data.csv",na.strings = c(""," ", NA))
 sites=fread("table_s2.csv",na.strings = c(""," ", NA))
 
+subset(dat,!is.na(hummingbird_species)) %>% group_by(Country) %>% count()
+
 ###### PLOT NETWORKS:
 
 bi=dat %>% group_by(plant_species,site,Country) %>% mutate(duration_plant=sum(duration_sampling_hours[!duplicated(waypoint)],na.rm=T)) #keep camera without interaction to calculate sampling pressure
