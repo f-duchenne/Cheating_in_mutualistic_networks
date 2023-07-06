@@ -74,7 +74,7 @@ fwrite(unique(anomalies[,c("waypoint","waypoint_folder","Country")]),"waypoint_t
 
 
 
-EPHI_version="2023-06-20"
+EPHI_version="2023-07-04"
 anomalies=NULL
 
 for(pays in c("Costa-Rica","Ecuador","Brazil")){
@@ -130,7 +130,7 @@ bidon=subset(bidon,as.numeric(difference_start)>0 | as.numeric(difference_end)>0
 
 
 setwd(dir="C:/Users/Duchenne/Documents/EPHI_data_clean")
-fwrite(bidon,"waypoint_to_check_time_no_threshold2_remaining.csv")
+fwrite(bidon,"waypoint_to_check_time_no_threshold2_remaining2.csv")
 
 
 
@@ -154,6 +154,34 @@ datf=rbind(datf,dat)
 
 dat$ID=1:nrow(dat)
 vec=dat$ID[duplicated(dat[,c("filename","time","date")]) | duplicated(dat[,c("filename","time","date")],fromLast=TRUE)]
+
+bidon=as.data.frame(dat[dat$ID %in% vec,])
+bidon=bidon[order(bidon$filename,bidon$date,bidon$time),]
+
+fwrite(bidon,"duplicate_pictures.csv")
+
+
+
+
+EPHI_version="2023-06-14"
+anomalies=NULL
+datf=NULL
+
+for(pays in c("Costa-Rica","Ecuador","Brazil")){
+
+#LOAD HUMMINGBIRD DATA FROM COSTA-RICA:
+dat=fread(paste0("C:/Users/Duchenne/Documents/EPHI_data_clean/",pays,"_",EPHI_version,"/Interactions_data_",pays,".txt"),na.strings = c("",NA))
+dat[dat==""]=NA
+dat$date=as.IDate(dat$date,"%Y/%m/%d") #be sure date columns is recognize as date
+
+sites=fread(paste0("C:/Users/Duchenne/Documents/EPHI_data_clean/",pays,"_",EPHI_version,"/Site_metadata_",pays,".txt"),na.strings = c("",NA))
+datf=rbind(datf,dat)
+}
+
+
+
+dat$ID=1:nrow(dat)
+bidon=susbet(datf,time<"")
 
 bidon=as.data.frame(dat[dat$ID %in% vec,])
 bidon=bidon[order(bidon$filename,bidon$date,bidon$time),]

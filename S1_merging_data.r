@@ -43,7 +43,7 @@ library(sp)
 library(spatialEco)
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
 
-EPHI_version="2023-02-14"
+EPHI_version="2023-07-04"
 
 #COMBINE FLOWER PIERCERS AND HUMMINGBIRD DATA FROM ECUADOR:
 dat_fp=fread("C:/Users/Duchenne/Documents/EPHI_data_clean/EPHI_FP_clean_flowerpiercers.csv")
@@ -88,32 +88,8 @@ dat_cr$Country="Costa-Rica"
 dat=rbind(dat_cr,dat_ec[,names(dat_cr),with=F])
 dim(subset(dat,is.na(duration_sampling_hours)))
 ###### ESTIMATE MISSING DURATION FROM PICTURE TIMES:
-dat$time[nchar(dat$time)==5 & !is.na(dat$time)]=paste0(dat$time[nchar(dat$time)==5 & !is.na(dat$time)],":00")
-guessduration <- function(dt1,tm1,dt2,tm2) {
-  if(!is.na(tm1)) {
-    obj1=strptime(paste(dt1, tm1), "%Y-%m-%d %H:%M:%S")
-  }else{
-    obj1=strptime(paste(dt1, "10:00:00"), "%Y-%m-%d %H:%M:%S")
-  }
-  if(!is.na(tm2)) {
-    obj2=strptime(paste(dt2, tm2), "%Y-%m-%d %H:%M:%S")
-  }else{
-    obj2=strptime(paste(dt2, "10:00:00"), "%Y-%m-%d %H:%M:%S")
-  }
-  return(difftime(obj2,obj1,units="hours"))
-}
-
-
-dat[,date_complete_pic:=strptime(paste(dat$date, dat$time,sep=" "), "%Y-%m-%d %H:%M:%S")]
-dat=dat %>% group_by(waypoint,site) %>% mutate(start_date_pic=min(date),end_date_pic=max(date),
-start_time_pic=format(min(date_complete_pic), format="%H:%M:%S"),end_time_pic=format(max(date_complete_pic), format="%H:%M:%S"))
-
-dat$duration_sampling_hours[is.na(dat$duration_sampling_hours)]=mapply(guessduration,dat$start_date_pic[is.na(dat$duration_sampling_hours)],dat$start_time_pic[is.na(dat$duration_sampling_hours)],
-dat$end_date_pic[is.na(dat$duration_sampling_hours)],dat$end_time_pic[is.na(dat$duration_sampling_hours)])
-dim(subset(dat,is.na(duration_sampling_hours)))
-
-#REMOVE CAMERA WITHOUT DURATION
-dat=subset(dat,duration_sampling_hours>0)
+dat$duration_sampling_hours[is.na(dat$duration_sampling_hours)]=dat$duration_from_pics[is.na(dat$duration_sampling_hours)]
+dat=subset(dat,duration_sampling_hours>=5 & camera_problem!="yes")
 
 ##### EXPORTING DATA
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
