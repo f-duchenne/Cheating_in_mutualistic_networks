@@ -47,7 +47,7 @@ library(inlabru)
 library("inlaVP")
 
 
-EPHI_version="2023-06-20"
+EPHI_version="2023-07-21"
 anomalies=NULL
 
 for(pays in c("Costa-Rica","Ecuador","Brazil")){
@@ -74,7 +74,7 @@ fwrite(unique(anomalies[,c("waypoint","waypoint_folder","Country")]),"waypoint_t
 
 
 
-EPHI_version="2023-07-04"
+EPHI_version="2023-07-21"
 anomalies=NULL
 
 for(pays in c("Costa-Rica","Ecuador","Brazil")){
@@ -104,16 +104,16 @@ dat=as.data.frame(dat)
 timo=dat$time
 timo[is.na(timo)]="12:00:00"
 dat$date_time=as.POSIXct(NA,"")
-dat$date_time[!is.na(dat$date)]=as.POSIXct(paste(dat$date[!is.na(dat$date)],timo[!is.na(dat$date)],sep=" "),"%Y-%m-%d %H:%M:%S")
+dat$date_time[!is.na(dat$date)]=as.POSIXct(paste(dat$date[!is.na(dat$date)],timo[!is.na(dat$date)],sep=" "),"%Y-%m-%d %H:%M:%S",tz="CET")
 
 timo=dat$start_time
 timo[is.na(timo)]="00:00:01"
 dat$start_date_time=as.POSIXct(NA,"")
-dat$start_date_time[!is.na(dat$start_date)]=as.POSIXct(paste(dat$start_date[!is.na(dat$start_date)],timo[!is.na(dat$start_date)],sep=" "),"%Y-%m-%d %H:%M:%S")
+dat$start_date_time[!is.na(dat$start_date)]=as.POSIXct(paste(dat$start_date[!is.na(dat$start_date)],timo[!is.na(dat$start_date)],sep=" "),"%Y-%m-%d %H:%M:%S",tz="CET")
 timo=dat$end_time
 timo[is.na(timo)]="23:00:01"
 dat$end_date_time=as.POSIXct(NA,"")
-dat$end_date_time[!is.na(dat$end_date)]=as.POSIXct(paste(dat$end_date[!is.na(dat$end_date)],timo[!is.na(dat$end_date)],sep=" "),"%Y-%m-%d %H:%M:%S")
+dat$end_date_time[!is.na(dat$end_date)]=as.POSIXct(paste(dat$end_date[!is.na(dat$end_date)],timo[!is.na(dat$end_date)],sep=" "),"%Y-%m-%d %H:%M:%S",tz="CET")
 
 
 anomalies=rbind(anomalies,subset(dat,date_time<start_date_time | date_time>end_date_time))
@@ -130,7 +130,7 @@ bidon=subset(bidon,as.numeric(difference_start)>0 | as.numeric(difference_end)>0
 
 
 setwd(dir="C:/Users/Duchenne/Documents/EPHI_data_clean")
-fwrite(bidon,"waypoint_to_check_time_no_threshold2_remaining2.csv")
+fwrite(bidon,"waypoint_to_check_time_final.csv")
 
 
 

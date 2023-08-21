@@ -13,7 +13,7 @@ handling=1
 efficience=1.5
 interfp=1
 interff=interfp
-maxiter=6000
+maxiter=8000
 scenarios=c("specialists","generalists")
 nb_replicates=length(unique(scenarios))
 
@@ -27,12 +27,13 @@ set.seed(jj)
 print(jj)
 
 netcar=NULL
-prop_cheaters_vec=seq(0.1,0.9,0.2)
-prop_cheating_vec=seq(0.1,1,0.1)
-prop_innovative_vec=seq(0,1,0.2)
+prop_cheaters_vec=seq(0.1,1,0.1)
+prop_cheating_vec=seq(0,1,0.1)
+prop_innovative_vec=seq(0,1,0.1)
 cost_vec=seq(0,0.3,0.15)
-connectance_vec=seq(0.2,0.4,0.2)
-tab=rbind(expand.grid(Var1=0,Var2=0,Var3=0,Var4=seq(0,0.3,0.15),Var5=unique(connectance_vec)),expand.grid(prop_cheaters_vec,prop_cheating_vec,prop_innovative_vec,cost_vec,connectance_vec))
+connectance_vec=seq(0.2,0.4,0.1)
+nsp_vec=c(10,15,20)
+tab=rbind(expand.grid(prop_cheaters_vec,prop_cheating_vec,prop_innovative_vec,cost_vec,connectance_vec,nsp_vec))
 for(jjj in 1:nrow(tab)){
 time1=Sys.time()
 prop_cheaters=tab$Var1[jjj]
@@ -40,9 +41,9 @@ prop_cheating=tab$Var2[jjj]
 prop_innovative=tab$Var3[jjj]
 cost=tab$Var4[jjj]
 connectance=tab$Var5[jjj]
-if(prop_cheaters>0){nbrep=nb_replicates}else{nbrep=1}
+nsp=tab$Var6[jjj]
 
-for(random in 1:nbrep){
+for(random in 1:nb_replicates){
 
 scenario=scenarios[random]
 
@@ -115,6 +116,13 @@ if(y[i]>=seuil){dy[i]=eq1}else{dy[i]=0}}
 return(list(dy))}
 
 load(paste0("replicate_",jj,".RData"))
+nbsp_a=nsp
+nbsp_p=nsp
+IPOLL=IPOLL[1:nbsp_p,1:nbsp_a]
+r=c(r[1:max(nsp_vec)][1:nbsp_a],r[(max(nsp_vec)+1):(2*max(nsp_vec))][1:nbsp_p])
+CSp=CSp[1:nbsp_p,1:nbsp_p]
+CSa=CSa[1:nbsp_a,1:nbsp_a]
+
 Iini=IPOLL
 Iini[Iini<quantile(c(Iini),probs=(1-connectance))]=0
 Iini[Iini>0]=1
@@ -260,7 +268,7 @@ mod_IM=tryCatch({if(nbsp_a>1 & nbsp_p>1){computeModules(IM, method="Beckett")@li
 
 netcar=rbind(netcar,data.frame(interf=interff,essai=jj,scenario=scenario,prop_cheaters=prop_cheaters,prop_cheating=prop_cheating,prop_innovative=prop_innovative,cost=cost,connectance,
 nbsp_p_dep=nbsp_p_dep,nbsp_a_dep=nbsp_a_dep,nbsp_a=nbsp_a_per,nbsp_p=nbsp_p_per,
-pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),generalism_cheaters=if(length(cheaters_ini[cheaters_ini==1])>0){mean(apply(Iini[,cheaters_ini==1],2,mean))}else{NA},generalism=mean(apply(Iini,2,mean)),
+pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),generalism_cheaters=if(length(cheaters_ini[cheaters_ini==1])>1){mean(apply(Iini[,cheaters_ini==1],2,mean))}else{mean(Iini[,cheaters_ini==1])},generalism=mean(apply(Iini,2,mean)),
 variance=a,valprop=max(Re(eig)),
 ai_direct_aa=ai_direct_aa,ai_direct_pp=ai_direct_pp,ai_direct_pa=ai_direct_pa,
 ai_direct_ap=ai_direct_ap,ai_net_ap=ai_net_ap,ai_net_aa=ai_net_aa,ai_net_pp=ai_net_pp,ai_net_pa=ai_net_pa,
@@ -273,7 +281,7 @@ C_Iini=mean(Iini),C_Tini=mean(Tini),C_Mini=mean(Mini),C_IM=mean(IM),C_T=mean(T),
 }else{
 netcar=rbind(netcar,data.frame(interf=interff,essai=jj,scenario=scenario,prop_cheaters=prop_cheaters,prop_cheating=prop_cheating,prop_innovative=prop_innovative,cost=cost,connectance,
 nbsp_p_dep=nbsp_p_dep,nbsp_a_dep=nbsp_a_dep,nbsp_a=nbsp_a_per,nbsp_p=nbsp_p_per,
-pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),generalism_cheaters=if(length(cheaters_ini[cheaters_ini==1])>0){mean(apply(Iini[,cheaters_ini==1],2,mean))}else{NA},generalism=mean(apply(Iini,2,mean)),
+pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),generalism_cheaters=if(length(cheaters_ini[cheaters_ini==1])>1){mean(apply(Iini[,cheaters_ini==1],2,mean))}else{mean(Iini[,cheaters_ini==1])},generalism=mean(apply(Iini,2,mean)),
 variance=a,valprop=NA,ai_direct_aa=NA,ai_direct_pp=NA,ai_direct_pa=NA,
 ai_direct_ap=NA,ai_net_ap=NA,ai_net_aa=NA,ai_net_pp=NA,ai_net_pa=NA,
 ai_indirect_aa=NA,ai_indirect_pp=NA,ai_indirect_pa=NA,ai_indirect_ap=NA,

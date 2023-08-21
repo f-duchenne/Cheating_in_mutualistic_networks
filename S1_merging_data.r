@@ -43,7 +43,7 @@ library(sp)
 library(spatialEco)
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
 
-EPHI_version="2023-07-04"
+EPHI_version="2023-08-14"
 
 #COMBINE FLOWER PIERCERS AND HUMMINGBIRD DATA FROM ECUADOR:
 dat_fp=fread("C:/Users/Duchenne/Documents/EPHI_data_clean/EPHI_FP_clean_flowerpiercers.csv")
@@ -108,8 +108,11 @@ getmode <- function(v) {
 
 #LOAD TRAIT DATA AND COMBINE THEM TO HAVE ONE VALUE PER SPECIES
 tr=fread(paste0("C:/Users/Duchenne/Documents/EPHI_data_clean/plant_traits_",EPHI_version,"/Plant_traits.txt"),na.strings = c("",NA))
-tr2=subset(tr,!is.na(plant_species))  %>% group_by(plant_species,plant_family,plant_genus) %>% summarise(Tube_length=mean(Tube_length,na.rm=T),Anther_length=mean(Anther_length,na.rm=T), Stigma_length=mean(Stigma_length,na.rm=T),
-Opening_corrolla=mean(Opening_corrolla,na.rm=T),Curvature_middle=mean(Curvature_middle,na.rm=T),Type=getmode(Type))
+tr$Tubelength=as.numeric(tr$Tubelength)
+tr2=subset(tr,!is.na(plant_species))  %>% dplyr::group_by(plant_species,plant_family,plant_genus) %>% 
+dplyr::summarise(Tube_length=mean(Tubelength,na.rm=T),Anther_length=mean(StamenLength,na.rm=T),
+Stigmalength=mean(StyleLength,na.rm=T),Opening_corrolla=mean(Opening_corolla_lateral,na.rm=T),
+Curvature_middle=mean(CurvatureCentral,na.rm=T),Type=getmode(FlowerType))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
 fwrite(tr2,"traits_data.csv")
