@@ -200,14 +200,14 @@ dev.off();
 compar=dcast(data=b,prop_cheating+prop_innovative+cost+prop_cheaters+scenario+interfp~paste0("d",nbsp_a_dep),value.var="persr")
 
 pl5=ggplot(data=compar,aes(x=d20,y=d10))+
-geom_rect(aes(xmin=-0.06, xmax = 0.03,ymin = -Inf, ymax = Inf),fill="grey93",color=NA)+
+geom_rect(aes(xmin=-0.06, xmax = max(compar$d20[!is.na(compar$d10)],na.rm=T)+0.005,ymin = -Inf, ymax = Inf),fill="grey93",color=NA)+
 geom_abline(intercept=0,slope=1)+
 geom_hline(yintercept=0,linetype="dashed")+geom_vline(xintercept=0,linetype="dashed")+
 geom_point(alpha=0.5)+
 theme_bw()+theme(axis.line = element_line(colour = "black"),panel.grid.major = element_blank(),
 panel.grid.minor = element_blank(),panel.border = element_blank(),panel.background = element_blank(),
 plot.title=element_text(size=14,face="bold",hjust = 0))+
-coord_fixed(ratio=1,expand=T)+facet_zoom(xlim = c(-0.05, 0.025),
+coord_fixed(ratio=1,expand=T)+facet_zoom(xlim = c(-0.05, max(compar$d20[!is.na(compar$d10)],na.rm=T)),
 ylim=c(min(compar$d10[compar$d20>=(-0.05)],na.rm=T),max(compar$d10[compar$d20>=(-0.05)],na.rm=T)),
 horizontal=F,shrink=TRUE,zoom.size=1,
 show.area=F)+ggtitle("b")+xlab(expression(paste("Effect of cheating on persistence when ",n[sp]==40)))+
@@ -395,8 +395,8 @@ scale_fill_manual(values=c("lightpink","hotpink","deeppink4"))+labs(color=expres
 grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S4.pdf",width=1200,height=400)
-grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3),res=150)
+png("fig_S4.png",width=1200,height=400,res=120)
+grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 dev.off();
 
 ############ FIGURE S5 ###########
@@ -462,50 +462,3 @@ dev.off();
 
 
 
-
-
-setwd(dir="C:/Users/Duchenne/Documents/cheating/initial")
-NO=NULL
-for(jj in 1:500){
-connectance=0.2
-load(paste0("replicate_",jj,".RData"))
-Iini=IPOLL
-Iini[Iini<quantile(c(Iini),probs=(1-connectance))]=0
-Iini[Iini>0]=1
-check_a=apply(Iini,2,sum)
-check_p=apply(Iini,1,sum)
-if(min(check_a)==0){
-for(i in which(check_a==0)){
-Iini[which.max(IPOLL[,i]),i]=1
-}
-}
-if(min(check_p)==0){
-for(i in which(check_p==0)){
-Iini[i,which.max(IPOLL[i,])]=1
-}
-}
-
-bidon1=data.frame(essai=jj,NODF=networklevel(Iini,index="NODF")[[1]],connectance=connectance)
-connectance=0.4
-load(paste0("replicate_",jj,".RData"))
-Iini=IPOLL
-Iini[Iini<quantile(c(Iini),probs=(1-connectance))]=0
-Iini[Iini>0]=1
-check_a=apply(Iini,2,sum)
-check_p=apply(Iini,1,sum)
-if(min(check_a)==0){
-for(i in which(check_a==0)){
-Iini[which.max(IPOLL[,i]),i]=1
-}
-}
-if(min(check_p)==0){
-for(i in which(check_p==0)){
-Iini[i,which.max(IPOLL[i,])]=1
-}
-}
-
-bidon2=data.frame(essai=jj,NODF=networklevel(Iini,index="NODF")[[1]],connectance=connectance)
-
-NO=rbind(NO,bidon1,bidon2)
-}
-res=merge(res,NO,by=c("essai","connectance"))
