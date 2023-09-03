@@ -55,7 +55,7 @@ library(sp)
 library(spatialEco)
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
 
-EPHI_version="2023-08-14"
+EPHI_version="2023-08-24"
 
 #MERGE THEM WITH CAMERA INFORMATION:
 cameras_ec=fread(paste0("C:/Users/Duchenne/Documents/EPHI_data_clean/Ecuador_",EPHI_version,"/Cameras_data_Ecuador.txt"),na.strings = c("",NA))

@@ -87,6 +87,7 @@ b=subset(res,prop_cheaters>0) %>% group_by(prop_cheating,prop_innovative,cost,pr
 summarise(persr=mean(pers_tot-pers0),persr_sde=sd(pers_tot-pers0)/sqrt(length(persr)),
 resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
+summary(b$persr)
 
 bidon=subset(b,cost<=0.15 & prop_cheaters %in% c(0.1,0.5) & nbsp_a_dep==20 & interfp==1)
 zero_pos=unique(scales::rescale(bidon$persr, to = c(0, 1))[bidon$persr==0])
@@ -149,23 +150,17 @@ mat=as.matrix(unique(cbind(X,Y,Z)))
 
 ls1=plotHull3D(mat, drawPoints = FALSE,drawLines =FALSE,argsPolygon3d = list(color = "grey",alpha=0.2)) # a line
 
-# bidon=subset(b,cost==0.15 & persr>0)
-# X=bidon$prop_cheating
-# Y=bidon$prop_innovative
-# Z=bidon$prop_cheaters
-# mat2=as.matrix(unique(cbind(X,Y,Z)))
-
-# ls2=plotHull3D(mat2, drawPoints = FALSE,drawLines =FALSE,argsPlot3d=list(add=TRUE),argsPolygon3d = list(color = "slategray4",alpha=0.8)) # a line
-
 bidon=subset(b,cost==0.3 & persr>0 & scenario=="specialists" & nbsp_a_dep==20 & interfp==1)
 X=bidon$prop_cheating
 Y=bidon$prop_innovative
 Z=bidon$prop_cheaters
 mat3=as.matrix(unique(cbind(X,Y,Z)))
 cxhull(mat3)
-ls3=plotHull3D(mat3, drawPoints = FALSE,drawLines =FALSE,argsPlot3d=list(add=TRUE),argsPolygon3d = list(color = "midnightblue",alpha = 1)) # a line
+ls3=plotHull3D(mat3, drawPoints = FALSE,drawLines =FALSE,argsPlot3d=list(add=TRUE),
+argsPolygon3d = list(color = "midnightblue",alpha = 1)) # a line
 
-finalize3D(argsTitle3d=list(xlab=expression(Omega),ylab="",zlab=expression(bar(Delta)),cex=2),argsAxes3d=list(edges =c('y+', 'x', 'x', 'z')))
+finalize3D(argsTitle3d=list(xlab=expression(Omega),ylab="",zlab=expression(bar(Delta)),cex=2),
+argsAxes3d=list(edges =c('y+', 'x', 'x', 'z')))
 mtext3d(expression(Psi),edge="y+",line=2,las=2,cex=2)
 
 liste=unique(b[,c("cost","scenario","nbsp_a_dep")])
@@ -186,7 +181,7 @@ axis.title.x=element_blank(),plot.title=element_text(size=14,face="bold",hjust =
 coord_cartesian(expand=F)+labs(fill=expression(paste("Cost (",Lambda,")")))+ylab("Volume of the parameter space in which\ncheating increases persistence")+ggtitle("d")
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-td <- image_read("essai.png",density=900) 
+td <- image_read("essai2.png",density=900) 
 pl4 <- image_ggplot(td,interpolate=T)+theme(plot.title=element_text(size=14,face="bold",hjust = 0))+ggtitle("c")
 
 grid.arrange(pl1,pl2,leg,pl3,pl4,layout_matrix =rbind(c(1,2),c(3,3),c(4,5)),widths=c(1,1),heights=c(5,1,4))
@@ -226,8 +221,8 @@ ylab("Volume of the parameter space in which\ncheating increases persistence")+g
 
 bidon=subset(b,cost==0.15 & prop_cheaters==0.1 & nbsp_a_dep==20 & scenario=="specialists")
 zero_pos=unique(scales::rescale(bidon$persr, to = c(0, 1))[bidon$persr==0])
-bidon$interf="no competition among pollinators\nfor partners"
-bidon$interf[bidon$interfp==1]="competition among pollinators\nfor partners"
+bidon$interf="no competition among\npollinators for partners"
+bidon$interf[bidon$interfp==1]="competition among\npollinators for partners"
 
 pl7=
 ggplot(data=bidon,aes(x=prop_cheating,y=prop_innovative,fill=persr))+
@@ -257,7 +252,7 @@ dev.off();
 
 
 ############ FIGURE S1 ###########
-b=subset(res,prop_cheaters>0 & connectance==0.4) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>%
+b=subset(res,prop_cheaters>0 & connectance==0.4  & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>%
 summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
 pl1=ggplot(data=subset(b,cost<0.6),aes(x=prop_cheating,y=pers,col=prop_innovative,group=paste0(prop_innovative,scenario),linetype=scenario))+geom_line()+theme_bw()+
@@ -334,7 +329,7 @@ pls2
 dev.off();
 
 
-############ FIGURE S4 ###########
+############ FIGURE S5 ###########
 res$resiliencer=res$pers_tot-res$pers0
 res=res %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% mutate(pers_moy=mean(pers_tot),pers_sd=sd(pers_tot))
 1-(var(res$pers_tot-res$pers_moy))/var(res$pers_tot)
@@ -395,11 +390,11 @@ scale_fill_manual(values=c("lightpink","hotpink","deeppink4"))+labs(color=expres
 grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S4.png",width=1200,height=400,res=120)
+png("fig_S5.png",width=1200,height=400,res=120)
 grid.arrange(pl1,pl2,pl3,ncol=3,widths=c(3,2.6,3))
 dev.off();
 
-############ FIGURE S5 ###########
+############ FIGURE S4 ###########
 b=subset(res,prop_cheaters>0 & connectance==0.2 & prop_cheaters %in% c(0.1,0.3,0.5,0.7,0.9)) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario) %>% 
 summarise(pers=mean(pers_tot),resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
 
@@ -429,7 +424,7 @@ pl1=pl1+theme(legend.position="none")
 grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,3),c(2,3)),widths=c(4,1))
 
 setwd(dir="C:/Users/Duchenne/Documents/cheating")
-png("fig_S5.png",width=1300,height=1400,res=150)
+png("fig_S4.png",width=1300,height=1400,res=150)
 grid.arrange(pl1,pl2,leg,layout_matrix =rbind(c(1,3),c(2,3)),widths=c(4,1))
 dev.off();
 
