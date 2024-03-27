@@ -82,6 +82,40 @@ nrow(subset(res,resilience<0))
 res=res %>% group_by(prop_innovative,cost,prop_cheaters,scenario,connectance,essai,nbsp_a_dep,interfp) %>%
 mutate(pers0=pers_tot[prop_cheating==0],resilience0=resilience[prop_cheating==0])
 
+
+####poster & presentation stuffs
+res$overall_level_cheating=res$prop_cheaters*res$prop_cheating
+b=subset(res,prop_cheaters>0) %>% group_by(overall_level_cheating,prop_innovative,cost,scenario,nbsp_a_dep,interfp) %>%
+summarise(persr=mean(pers_tot-pers0),persr_sde=sd(pers_tot-pers0)/sqrt(length(persr)),
+resilience=mean(-1*valprop,na.rm=T),feasibility=mean(feas),contrib=mean(ai_contrib_aa,na.rm=T)) 
+
+summary(b$persr)
+
+bidon=subset(b,cost<=0.15 & nbsp_a_dep==20 & interfp==1)
+bidon$overall_level_cheating2=plyr::round_any(bidon$overall_level_cheating,0.1)
+bidon$overall_level_cheating2[bidon$overall_level_cheating>0 & bidon$overall_level_cheating2==0]=0.1
+zero_pos=unique(scales::rescale(bidon$persr, to = c(0, 1))[bidon$persr==0])
+
+cost_plot=0
+
+setwd(dir="C:/Users/Duchenne/Documents/cheating")
+png("figpres.png",width=900,height=900,res=200)
+ggplot(data=subset(bidon,cost==cost_plot & nbsp_a_dep==20),aes(x=overall_level_cheating2,y=prop_innovative,fill=persr))+
+theme_bw()+
+geom_raster(interpolate=FALSE)+
+geom_tile(data=subset(bidon,persr>0 & cost==cost_plot & nbsp_a_dep==20 ), alpha = 0.0, color = "black", size = 1, linejoin = "round")+
+geom_tile(data=subset(bidon,persr>0 & cost==cost_plot & nbsp_a_dep==20),aes(fill=persr),col=NA)+
+theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),strip.background=element_rect(fill=NA,color=NA),
+panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="top",legend.text = element_text(angle=45,hjust=1))+
+facet_grid(cols=vars(scenario))+
+labs(fill="Average effect\non persistence\n\n")+ 
+xlab(expression(paste("Overall level of cheating")))+ylab(expression(paste("Proportion of innovative cheating ( ",Psi,")")))+
+scale_fill_gradientn(colors=c("firebrick2","#ffecfb","white","lightsteelblue1","midnightblue"), values=c(0,zero_pos-0.02,zero_pos,zero_pos+0.02,1),
+n.breaks=4,limits=c(min(bidon$persr),max(bidon$persr)),labels = scales::percent_format(accuracy=1))+
+scale_x_continuous(breaks=seq(0,1,0.2),labels=c(0,0.2,0.4,0.6,0.8,1))+scale_y_continuous(breaks=seq(0,1,0.2))+
+coord_fixed(ratio=1,expand=F)+guides(fill = guide_colorbar(ticks.colour="black"))
+dev.off();
+
 ############ FIGURE 2 ###########
 b=subset(res,prop_cheaters>0) %>% group_by(prop_cheating,prop_innovative,cost,prop_cheaters,scenario,nbsp_a_dep,interfp) %>%
 summarise(persr=mean(pers_tot-pers0),persr_sde=sd(pers_tot-pers0)/sqrt(length(persr)),
@@ -91,7 +125,6 @@ summary(b$persr)
 
 bidon=subset(b,cost<=0.15 & prop_cheaters %in% c(0.1,0.5) & nbsp_a_dep==20 & interfp==1)
 zero_pos=unique(scales::rescale(bidon$persr, to = c(0, 1))[bidon$persr==0])
-
 
 pl1=
 ggplot(data=subset(bidon, prop_cheaters==0.1),aes(x=prop_cheating,y=prop_innovative,fill=persr))+
@@ -118,7 +151,7 @@ geom_raster(interpolate=FALSE)+
 geom_tile(data=subset(bidon,prop_cheaters==0.5 & persr>0), alpha = 0.0, color = "black", size = 1, linejoin = "round")+
 geom_tile(data=subset(bidon,prop_cheaters==0.5 & persr>0),aes(fill=persr),col=NA)+
 theme(panel.grid=element_blank(),plot.title=element_text(size=14,face="bold",hjust = 0),strip.background=element_rect(fill=NA,color=NA),
-panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="none",legend.text = element_text(angle=45,hjust=1))+
+panel.border = element_rect(color = "black", fill = NA, size = 1),legend.position="bottom",legend.text = element_text(angle=45,hjust=1))+
 facet_grid(rows=vars(cost),cols=vars(scenario),labeller = label_bquote(rows=Lambda == .(cost)))+
 labs(fill="Average effect\non persistence")+
 xlab(expression(paste("Cheating frequency (",Omega,")")))+ylab(expression(paste("Proportion of innovative cheating (",Psi,")")))+
@@ -193,9 +226,11 @@ dev.off();
 
 
 compar=dcast(data=b,prop_cheating+prop_innovative+cost+prop_cheaters+scenario+interfp~paste0("d",nbsp_a_dep),value.var="persr")
+compar=subset(compar,!is.na(d10))
 
 pl5=ggplot(data=compar,aes(x=d20,y=d10))+
-geom_rect(aes(xmin=-0.06, xmax = max(compar$d20[!is.na(compar$d10)],na.rm=T)+0.005,ymin = -Inf, ymax = Inf),fill="grey93",color=NA)+
+geom_rect(aes(xmin=-0.06, xmax = max(compar$d20,na.rm=T)+0.005,ymin = min(subset(compar,d20>-0.06 & d20<max(compar$d20,na.rm=T)+0.005)$d10),
+ymax = max(subset(compar,d20>-0.06 & d20<max(compar$d20,na.rm=T)+0.005)$d10)+0.025),fill="grey93",color="red")+
 geom_abline(intercept=0,slope=1)+
 geom_hline(yintercept=0,linetype="dashed")+geom_vline(xintercept=0,linetype="dashed")+
 geom_point(alpha=0.5)+

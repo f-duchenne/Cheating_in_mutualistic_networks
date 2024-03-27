@@ -88,20 +88,18 @@ transect_agg=transect %>% group_by(site,plant_species) %>% count()
 tab=merge(transect_agg,cameras_agg,by=c("site","plant_species"),all.x=T)
 tab=subset(tab,!is.na(plant_species))
 tab$n.y[is.na(tab$n.y)]=0
-bidon=tab %>% group_by(site) %>% summarise(perc=length(unique(plant_species[n.y==0]))/length(unique(plant_species)))
-
 
 tr2=fread("traits_data.csv",na.strings = c(""," ", NA))
-
 tab=merge(tab,tr2,by="plant_species",all.x=T)
 tab$n.y[is.na(tab$n.y)]=0
 tab %>% group_by(site) %>% summarise(perc=length(unique(plant_species[n.y==0]))/length(unique(plant_species)))
 
 
-tab$tubular="no"
+tab$tubular=NA
 tab$tubular[tab$Tube_length>0.1]="yes"
+tab$tubular[tab$Tube_length<=0.1]="no"
 
-
+#FIG. S8
 ggplot(data=tab,aes(x=n.x,y=n.y,color=tubular))+geom_point()+facet_wrap(~site,ncol=3)+
 scale_x_log10(breaks = trans_breaks("log10", function(x) 10^x),labels = trans_format("log10", math_format(10^.x)),
 n.breaks =2,minor_breaks=NULL)+
@@ -111,4 +109,4 @@ theme_bw()+ annotation_logticks()+theme(panel.grid=element_blank())+xlab("Abunda
 ylab("Sampling pressure (number of sampling events)")
 
 
-
+fwrite(tab,"data_for_figure_S9.csv")

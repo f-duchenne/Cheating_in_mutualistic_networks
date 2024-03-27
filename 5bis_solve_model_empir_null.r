@@ -24,10 +24,10 @@ tab1=expand.grid(sites,essais)
 site=tab1$Var1[jj]
 essai=tab1$Var2[jj]
 
-cost_vec=c(0,0.05,0.10,0.15,0.3)
-efficience_vec=seq(1,2,0.2)
+cost_vec=c(0,0.05)
+efficience_vec=c(1,1.4)
 interfp_vec=c(0.5,1)
-simulations=c("tout","without_cheat")
+simulations=c("tout")
 tab2=expand.grid(cost_vec,simulations,efficience_vec,interfp_vec)
 
 time1=Sys.time()
@@ -103,6 +103,8 @@ myenv$interff=interff
 if(y[i]>=seuil){dy[i]=eq1}else{dy[i]=0}}
 return(list(dy))}
 
+
+for(random in 1:100){
 load(paste0(site,"_",essai,".RData"))
 
 nbsp_a_dep=length(list_hum)
@@ -114,7 +116,7 @@ nbsp_p=length(list_plant)
 r=r2
 
 M=mut_mat
-C=cheat_mat
+C=null_cheat_mat[[random]]
 M[M>0]=1
 C[C>0]=1
 prop_mat=cheat_mat/(cheat_mat+mut_mat)
@@ -175,14 +177,14 @@ eig=eigen(jacob,only.values=TRUE)$values
 
 netcar=rbind(netcar,data.frame(interf=interff,essai=essai,simulation=simulation,site=site,cost=cost,efficience=efficience,nbsp_p_dep=nbsp_p_dep,nbsp_a_dep=nbsp_a_dep,nbsp_a=nbsp_a_per,nbsp_p=nbsp_p_per,
 pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),
-variance=a,valprop=max(Re(eig))))
+variance=a,valprop=max(Re(eig)),random=random))
 }else{
 netcar=rbind(netcar,data.frame(interf=interff,essai=essai,simulation=simulation,site=site,cost=cost,efficience=efficience,nbsp_p_dep=nbsp_p_dep,nbsp_a_dep=nbsp_a_dep,nbsp_a=nbsp_a_per,nbsp_p=nbsp_p_per,
 pers_tot=(nbsp_a_per+nbsp_p_per)/(nbsp_a_dep+nbsp_p_dep),
-variance=a,valprop=NA))
-}
+variance=a,valprop=NA,random=random))
+}}
 
 }
 
-fwrite(netcar,paste0("/home/duchenne/cheating/eq_empir/",site,"_",essai,".txt"),row.names=FALSE,sep="\t")
+fwrite(netcar,paste0("/home/duchenne/cheating/eq_empir_null/",site,"_",essai,".txt"),row.names=FALSE,sep="\t")
 
